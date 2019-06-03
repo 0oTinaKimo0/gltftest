@@ -1,0 +1,85 @@
+<html>
+	<head>
+		<title>Alarm demo</title>
+		<style>
+			body { margin: 0; }
+			canvas { width: 100%; height: 100% }
+		</style>
+	</head>
+	<body>
+		<script src="three.js-master/build/three.js"></script>
+		<script src="three.js-master/examples/js/controls/OrbitControls.js"></script>
+		<script src="three.js-master/examples/js/WebGL.js"></script>
+		<script src="three.js-master/src/core/Clock.js"></script>
+		<script src="three.js-master/examples/js/libs/stats.min.js"></script>
+		<script src='three.js-master/examples/js/libs/dat.gui.min.js'></script>
+		<script>
+			if ( WEBGL.isWebGLAvailable() === false ) {
+				document.body.appendChild( WEBGL.getWebGLErrorMessage() );
+			}
+
+			// scene and camera
+			var scene = new THREE.Scene();
+			scene.background = new THREE.Color( 242, 242, 242 );
+			var gui;
+			var camera = new THREE.PerspectiveCamera( 75, window.innerWidth/window.innerHeight, 0.1, 1000 );
+			camera.position.y = -5;
+			camera.position.z = 2;
+			
+			// renderer and controls
+			var renderer = new THREE.WebGLRenderer();
+			renderer.setSize( window.innerWidth, window.innerHeight );
+			document.body.appendChild( renderer.domElement );
+			var controls = new THREE.OrbitControls( camera , renderer.domElement);
+			
+			// add a box and its mesh
+			var planeGeometry = new THREE.PlaneBufferGeometry(60,60,1,1);
+			var planeMaterial = new THREE.MeshBasicMaterial({color: "white"});
+			var plane = new THREE.Mesh(planeGeometry,planeMaterial);
+			plane.translateOnAxis(new THREE.Vector3( 0, 0, -1 ), 0.5);
+			scene.add(plane);
+			var material = new THREE.MeshBasicMaterial({color: "white", wireframe: "true"});
+			var box = new THREE.Mesh(new THREE.BoxGeometry(2, 1, 1), material );
+			scene.add( box );
+
+			// flashing animation
+			var clock = new THREE.Clock();
+			var time = 0;
+			var temp;
+			var animating = true;
+			initGui();
+			render();
+			function render() {
+            requestAnimationFrame( render );
+			time = clock.getElapsedTime() * 5;
+			planeMaterial.color.setHex( 0xAAAAAA );
+			if (!animating) box.material.color.setHSL( 0.0, 0.1 + 0.7 * ( 1 + Math.cos( time ) ), 0.5);
+			else box.material.color.set("gray");
+            renderer.render( scene, camera );
+			}
+			
+			// add a control pad
+			function initGui() {
+				gui = new dat.GUI();
+				var param = {
+					'temperature': 50,
+					'alert handled': false
+				};
+				
+				gui.add( param, 'temperature', 0, 100, 10 ).onChange( function ( val ) {
+					temp = val;
+					if(temp < 70) {
+					animating = true;
+					}
+					else animating = false;
+				} );
+				gui.add( param, 'alert handled' ).onChange( function ( val ) {
+					if(temp < 70) animating = true;
+					else animating = val;
+				} );
+					}
+
+		</script>
+		
+	</body>
+</html>
